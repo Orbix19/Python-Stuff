@@ -1,0 +1,6 @@
+numpy
+pandas
+yfinance
+tqdm
+matplotlib
+concurrent.futures
