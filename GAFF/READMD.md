@@ -93,16 +93,21 @@ The genetic algorithm consistently found near-optimal portfolios that balanced h
 
 ## New Code Snippets
 ```plaintext
-def normalize(individual):
-    total = sum(individual)
-    return [x / total for x in individual]
-
-def mutate(individual, mutation_rate):
-    if random.random() < mutation_rate:
-        index = random.randint(0, len(individual) - 1)
-        individual[index] += np.random.normal(0, 0.1)
-        return normalize(individual)
-    return individual
+# Parallel evaluation of the population
+def parallel_evaluate(population, mean_returns, covariance):
+    results = []
+    with concurrent.futures.ProcessPoolExecutor() as executor:
+        futures = {executor.submit(evaluate, ind, mean_returns, covariance): ind for ind in population}
+        for future in tqdm(concurrent.futures.as_completed(futures), total=len(population), desc="Evaluating population"):
+            try:
+                result = future.result()
+                results.append(result)
+            except Exception as e:
+                print(f"Error evaluating individual: {e}")
+                results.append((0, 0, 0))  # Append a dummy result in case of an error
+    fitnesses = [result[0] for result in results]
+    detailed_results = [(individual, result[1], result[2]) for individual, result in zip(population, results)]
+    return fitnesses, detailed_results
 ```
 
 ## Unit-testing Strategy
